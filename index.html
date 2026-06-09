@@ -664,10 +664,11 @@ async function odeslat() {
   showTyping();
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://script.google.com/macros/s/AKfycbyP2l58OvGi5mzk-PXMaGNRZoMj4E8C3vn7o4Ib89DVhqdePdj90OWUUHXC1hYiQ5pC/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': 'VÁŠ-API-KLÍČ-SEM', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'ai',
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
@@ -684,6 +685,7 @@ async function odeslat() {
 
   } catch (e) {
     hideTyping();
+    console.error('Chyba odeslat:', e);
     addMsg('ai', 'Nepodařilo se spojit se serverem. Zkuste to znovu.');
   }
 
@@ -704,10 +706,11 @@ async function start() {
   showTyping();
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://script.google.com/macros/s/AKfycbyP2l58OvGi5mzk-PXMaGNRZoMj4E8C3vn7o4Ib89DVhqdePdj90OWUUHXC1hYiQ5pC/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': 'VÁŠ-API-KLÍČ-SEM', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'ai',
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
@@ -724,6 +727,7 @@ async function start() {
 
   } catch (e) {
     hideTyping();
+    console.error('Chyba start:', e);
     addMsg('ai', 'Nepodařilo se načíst. Obnovte stránku.');
   }
 
