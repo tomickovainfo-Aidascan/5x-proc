@@ -666,7 +666,6 @@ async function odeslat() {
   try {
     const res = await fetch('https://script.google.com/macros/s/AKfycbyP2l58OvGi5mzk-PXMaGNRZoMj4E8C3vn7o4Ib89DVhqdePdj90OWUUHXC1hYiQ5pC/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'ai',
         model: 'claude-sonnet-4-20250514',
@@ -708,7 +707,6 @@ async function start() {
   try {
     const res = await fetch('https://script.google.com/macros/s/AKfycbyP2l58OvGi5mzk-PXMaGNRZoMj4E8C3vn7o4Ib89DVhqdePdj90OWUUHXC1hYiQ5pC/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'ai',
         model: 'claude-sonnet-4-20250514',
