@@ -291,6 +291,34 @@ nav {
 .send-btn:hover { background: var(--gold-dark); }
 .send-btn:disabled { opacity: .4; cursor: not-allowed; }
 
+.mic-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--light);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mic-btn:hover { border-color: var(--gold); color: var(--gold); }
+.mic-btn.recording {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  color: white;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(231,76,60,.5); }
+  70% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+  100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+}
+
 .input-hint {
   font-size: 11px;
   color: rgba(255,255,255,.2);
@@ -418,9 +446,10 @@ nav {
       rows="1"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();odeslat();}"
       oninput="autoResize(this)"></textarea>
+    <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Mluvit místo psaní">🎤</button>
     <button class="send-btn" id="send-btn" onclick="odeslat()">➤</button>
   </div>
-  <div class="input-hint">Enter = odeslat &nbsp;·&nbsp; Shift+Enter = nový řádek</div>
+  <div class="input-hint" id="input-hint">Enter = odeslat &nbsp;·&nbsp; Shift+Enter = nový řádek &nbsp;·&nbsp; 🎤 = mluvit</div>
 </div>
 
 <script>
@@ -681,6 +710,93 @@ async function odeslat() {
   document.getElementById('send-btn').disabled = false;
   document.getElementById('input').focus();
 }
+
+// HLASOVÉ OVLÁDÁNÍ (Web Speech API)
+let recognition = null;
+let isRecording = false;
+let micTextBase = '';
+
+function initRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+
+  const r = new SpeechRecognition();
+  r.lang = 'cs-CZ';
+  r.continuous = true;
+  r.interimResults = true;
+
+  r.onresult = (e) => {
+    let finalText = '';
+    let interimText = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const chunk = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalText += chunk;
+      else interimText += chunk;
+    }
+    if (finalText) micTextBase = (micTextBase + ' ' + finalText).trim();
+    const input = document.getElementById('input');
+    input.value = (micTextBase + ' ' + interimText).trim();
+    autoResize(input);
+  };
+
+  r.onerror = (e) => {
+    console.error('Chyba rozpoznávání řeči:', e.error);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      alert('Nemám povolení k mikrofonu. Povolte mikrofon v nastavení prohlížeče.');
+    }
+    stopRecording();
+  };
+
+  r.onend = () => {
+    stopRecording();
+  };
+
+  return r;
+}
+
+function toggleMic() {
+  if (isRecording) {
+    recognition.stop();
+    return;
+  }
+
+  if (!recognition) {
+    recognition = initRecognition();
+    if (!recognition) {
+      alert('Hlasové ovládání není v tomto prohlížeči podporováno. Zkuste Chrome nebo Edge.');
+      return;
+    }
+  }
+
+  const input = document.getElementById('input');
+  micTextBase = input.value.trim();
+  isRecording = true;
+  document.getElementById('mic-btn').classList.add('recording');
+  document.getElementById('input-hint').textContent = 'Poslouchám... klikněte na 🎤 pro ukončení';
+
+  try {
+    recognition.start();
+  } catch (e) {
+    stopRecording();
+  }
+}
+
+function stopRecording() {
+  isRecording = false;
+  const micBtn = document.getElementById('mic-btn');
+  if (micBtn) micBtn.classList.remove('recording');
+  const hint = document.getElementById('input-hint');
+  if (hint) hint.innerHTML = 'Enter = odeslat &nbsp;·&nbsp; Shift+Enter = nový řádek &nbsp;·&nbsp; 🎤 = mluvit';
+}
+
+// Skrýt mikrofon, pokud ho prohlížeč vůbec nepodporuje
+window.addEventListener('DOMContentLoaded', () => {
+  const supported = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!supported) {
+    const micBtn = document.getElementById('mic-btn');
+    if (micBtn) micBtn.style.display = 'none';
+  }
+});
 
 function resetChat() {
   if (!confirm('Začít novou analýzu? Aktuální konverzace bude smazána.')) return;
